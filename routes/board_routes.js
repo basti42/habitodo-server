@@ -17,8 +17,8 @@ router.get("/:id", authenticateToken, (req, res) => {
 
     db.collection("app-boards").findOne({_id: new mongo.ObjectId(decoded_board_id)})
         .then( board => {
-            console.log("Retrieved Board: ", board);
-            console.log("User ID: ", req.decoded_token.user_id);
+            // console.log("Retrieved Board: ", board);
+            // console.log("User ID: ", req.decoded_token.user_id);
             res.send(JSON.stringify({board}));
         })
         .catch( err => {
