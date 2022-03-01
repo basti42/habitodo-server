@@ -2,6 +2,9 @@ require('dotenv').config();
 const jwt = require("jsonwebtoken");
 
 
+/***
+ *  verifies that the token is valid, decodes the token and adds it to the req.decoded_token
+ */
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     if (authHeader){

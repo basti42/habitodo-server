@@ -8,6 +8,7 @@ const db = require("./database/connection");
 
 const statusRoutes = require("./routes/status_routes");
 const userRoutes = require("./routes/user_routes");
+const boardRoutes = require("./routes/board_routes");
 
 const app = express();
 
@@ -35,6 +36,7 @@ db.connectToServer((err) => {
 // apply the routes
 app.use("/status", statusRoutes);
 app.use("/app/user", userRoutes);
+app.use("/app/boards", boardRoutes);
 
 
 // make the app listen on a specified port
