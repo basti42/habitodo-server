@@ -35,8 +35,8 @@ db.connectToServer((err) => {
 
 // apply the routes
 app.use("/status", statusRoutes);
-app.use("/app/user", userRoutes);
-app.use("/app/boards", boardRoutes);
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/boards", boardRoutes);
 
 
 // make the app listen on a specified port
