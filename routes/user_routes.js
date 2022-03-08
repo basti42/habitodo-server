@@ -35,9 +35,10 @@ router.post("/register", (req, res) => {
                     .then( insert_result => {
                         const token = generateAccessToken(insert_result.insertedId.toString());
                         db.collection("app-users").findOneAndUpdate({email}, {$set: {"tokens": [token]}});
-                        res.send(JSON.stringify({token}));
+                        res.send(JSON.stringify({username, email, token, icon_path: ""}));
                     })
                     .catch( error => {
+                        console.error(error);
                         res.status(403).send(JSON.stringify({message: "Unable to generate token from user_id"}));
                     });
 
@@ -62,7 +63,7 @@ router.post("/login", (req, res) => {
             if (bcrypt.compareSync(password, existing_user.password_hash)){
                 const token = generateAccessToken(existing_user._id.toString());
                 db.collection("app-users").updateOne({email}, {$push: {tokens: token}});
-                res.send(JSON.stringify({token}));
+                res.send(JSON.stringify({ username: existing_user.username, email: existing_user.email, token, icon_path: existing_user.icon_path}));
             } else {
                 res.status(401).send({message: "Incorrect password."});
             }
