@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const mongo = require("mongodb");
 
 const generateAccessToken = require("../helpers/token");
+const generateGravatarFromEmail = require("../helpers/gravatar");
 const dbConnection = require("../database/connection");
 
 const authenticateToken = require("../middlewares/auth");
@@ -22,14 +23,18 @@ router.post("/register", (req, res) => {
     db.collection("app-users").findOne({email})
         .then( existing_user => {
             if (!existing_user){
+                const icon_url = generateGravatarFromEmail(email);
                 db.collection("app-users")
                 .insertOne({username, 
                         email, 
                         password_hash: hash, 
                         email_validated: false, 
-                        icon_path: "",
+                        icon_path: icon_url,
+                        position: "",
+                        bio: "",
                         tokens: [],
                         team_ids: [],
+                        boards: [],
                         personal_notes: []
                     })
                     .then( insert_result => {
@@ -97,9 +102,7 @@ router.get("/me", authenticateToken, (req, res) => {
                 res.send({
                     username: user.username,
                     email: user.email,
-                    icon_path: user.icon_path,
-                    notes: user.personal_notes,
-                    team_ids: user.team_ids
+                    icon_path: user.icon_path
                 });    
             } else {
                 res.status(401).send(JSON.stringify({message: "Something went horribly wrong"}));
@@ -109,6 +112,28 @@ router.get("/me", authenticateToken, (req, res) => {
             res.status(401).send(JSON.stringify({message: `Error occured: ${error}`}));
         });
 });
+
+router.get("/profile", authenticateToken, (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    const db = dbConnection.getDb();
+    db.collection("app-users").findOne({_id: new mongo.ObjectId(req.decoded_token.user_id)})
+        .then( user => {
+            if (user) {
+                res.send({
+                    bio: user.bio || "",
+                    position: user.position || "",
+                    boards: user.boards || {},
+                    personal_notes: user.personal_notes || {},
+                    team_ids: user.team_ids || []
+                });
+            } else {
+                res.status(401).send(JSON.stringify({message: "No user with this id is known."}));
+            }
+        })
+        .catch( error => {
+            res.status(401).send(JSON.stringify({message: `Error occured: ${error}`}));
+        });
+})
 
 // TEST ROUTE FOR DB ACCESS
 router.get("/all-users", (req, res) => {
