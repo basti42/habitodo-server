@@ -37,6 +37,7 @@ router.post("/add", authenticateToken, (req, res) => {
         .then( insert_result => {
             const board_id = insert_result.insertedId.toString("hex");
             const encrypted_board_id = simpleCrypto.cipher(board_id);
+            // TODO add encrypted id to object
             res.send(JSON.stringify({board_id: encrypted_board_id}));            
         })
         .catch( err => {

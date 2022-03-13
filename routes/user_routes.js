@@ -3,7 +3,6 @@ const bcrypt = require("bcrypt");
 const mongo = require("mongodb");
 
 const generateAccessToken = require("../helpers/token");
-const generateGravatarFromEmail = require("../helpers/gravatar");
 const dbConnection = require("../database/connection");
 
 const authenticateToken = require("../middlewares/auth");
@@ -23,13 +22,13 @@ router.post("/register", (req, res) => {
     db.collection("app-users").findOne({email})
         .then( existing_user => {
             if (!existing_user){
-                const icon_url = generateGravatarFromEmail(email);
                 db.collection("app-users")
                 .insertOne({username, 
                         email, 
                         password_hash: hash, 
-                        email_validated: false, 
-                        icon_path: icon_url,
+                        email_validated: false,
+                        registered_at: new Date(), 
+                        icon_path: "",
                         position: "",
                         bio: "",
                         tokens: [],
@@ -120,10 +119,11 @@ router.get("/profile", authenticateToken, (req, res) => {
         .then( user => {
             if (user) {
                 res.send({
+                    registered_at: user.registered_at,
                     bio: user.bio || "",
                     position: user.position || "",
-                    boards: user.boards || {},
-                    personal_notes: user.personal_notes || {},
+                    boards: user.boards || [],
+                    personal_notes: user.personal_notes || [],
                     team_ids: user.team_ids || []
                 });
             } else {
