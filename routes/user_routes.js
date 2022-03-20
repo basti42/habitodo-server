@@ -101,6 +101,7 @@ router.get("/me", authenticateToken, (req, res) => {
                 res.send({
                     username: user.username,
                     email: user.email,
+                    email_validated: user.email_validated,
                     icon_path: user.icon_path
                 });    
             } else {
@@ -119,7 +120,7 @@ router.get("/profile", authenticateToken, (req, res) => {
         .then( user => {
             if (user) {
                 res.send({
-                    registered_at: user.registered_at,
+                    registered_at: new Date(user.registered_at).toLocaleString(),
                     bio: user.bio || "",
                     position: user.position || "",
                     boards: user.boards || [],
