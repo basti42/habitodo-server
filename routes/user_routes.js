@@ -136,6 +136,23 @@ router.get("/profile", authenticateToken, (req, res) => {
         });
 })
 
+router.post("/update_profile", authenticateToken, (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    const { username, bio, position } = req.body;
+    const db = dbConnection.getDb();
+    db.collection("app-users").findOneAndUpdate(
+        {_id: new mongo.ObjectId(req.decoded_token.user_id)},
+        {$set: { username: username, bio: bio, position: position }})
+        .then( old_doc => {
+            // console.log("old doc: ", old_doc)
+            res.send(JSON.stringify({message: "update successful!"}));
+        })
+        .catch( err => {
+            // console.error("updating profile: ", err);
+            res.status(401).send(JSON.stringify({message: `Error occured ${err}`}));
+        });
+})
+
 // TEST ROUTE FOR DB ACCESS
 router.get("/all-users", (req, res) => {
     console.log("received get all users call");
