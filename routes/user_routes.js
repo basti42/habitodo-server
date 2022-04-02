@@ -95,7 +95,7 @@ router.post("/logout", authenticateToken, async (req, res) => {
         const db = dbConnection.getDb();
         
         let update_result = await db.collection("app-users").updateOne({_id: new mongo.ObjectId(req.decoded_token.user_id)}, { $pull: {tokens: token} });
-        console.log("update result: ", update_result);
+        // console.log("update result: ", update_result);
         res.send(JSON.stringify({message: "Successfully logged out"}));
     } catch (error) {
         res.status(401).send(JSON.stringify({message: "Unable to logout user"}));
