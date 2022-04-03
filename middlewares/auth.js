@@ -6,7 +6,7 @@ const dbConnection = require("../database/connection");
 /***
  *  verifies that the token is valid, decodes the token and adds it to the req.decoded_token
  */
-function authenticateToken(req, res, next) {
+async function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     if (authHeader){
         const token = authHeader.split(" ")[1];

@@ -44,7 +44,13 @@ router.post("/register", async (req, res) => {
                             username, 
                             email, 
                             token, 
-                            icon_path: ""
+                            icon_path: "",
+                            registered_at: new Date(user.registered_at).toLocaleString(),
+                            bio: user.bio || "",
+                            position: user.position || "",
+                            boards: user.boards || [],
+                            personal_notes: user.personal_notes || [],
+                            team_ids: user.team_ids || []
                         }));
                 })
                 .catch( error => {
@@ -77,7 +83,13 @@ router.post("/login", async (req, res) => {
                     username: existing_user.username, 
                     email: existing_user.email, 
                     token, 
-                    icon_path: existing_user.icon_path
+                    icon_path: existing_user.icon_path,
+                    registered_at: new Date(user.registered_at).toLocaleString(),
+                    bio: user.bio || "",
+                    position: user.position || "",
+                    boards: user.boards || [],
+                    personal_notes: user.personal_notes || [],
+                    team_ids: user.team_ids || []
                 }));
         } else {
             res.status(401).send({message: "Incorrect password."});
@@ -104,6 +116,8 @@ router.post("/logout", authenticateToken, async (req, res) => {
 
 router.get("/me", authenticateToken, async (req, res) => {
     try{
+        const authHeader = req.headers['authorization'];
+        const token = authHeader.split(" ")[1];
         res.setHeader('Content-Type', 'application/json');
         const db = dbConnection.getDb();
         let user = await db.collection("app-users").findOne({_id: new mongo.ObjectId(req.decoded_token.user_id)});
@@ -112,7 +126,14 @@ router.get("/me", authenticateToken, async (req, res) => {
                 username: user.username,
                 email: user.email,
                 email_validated: user.email_validated,
-                icon_path: user.icon_path
+                token,
+                icon_path: user.icon_path,
+                registered_at: new Date(user.registered_at).toLocaleString(),
+                bio: user.bio || "",
+                position: user.position || "",
+                boards: user.boards || [],
+                personal_notes: user.personal_notes || [],
+                team_ids: user.team_ids || []
             });
         } else {
             res.status(401).send(JSON.stringify({message: "Something went horribly wrong"}));
