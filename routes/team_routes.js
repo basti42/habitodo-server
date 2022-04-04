@@ -13,6 +13,9 @@ router.put("/add", authenticateToken, async (req, res) => {
         const { team_name, team_logo, members_emails } = req.body;
         const db = dbConnection.getDb();
     
+        // at this point the user exists in the db and has a valid token
+        const user = await db.collection("app-users").findOne({_id: new mongo.ObjectId(req.decoded_token.user_id)});
+
         // insert initial team values
         let response = await db.collection("app-teams").insertOne({
             team_name,
@@ -21,7 +24,7 @@ router.put("/add", authenticateToken, async (req, res) => {
             created_at: new Date(),
             members_emails,
             boards: [],
-            team_admins: [ req.decoded_token.user_id ],  // TODO cipher text of the internal mongodb object id for the user
+            team_admins: [ user.user_id ],  // cipher text of the internal mongodb object id for the user
             metrics: []
         });
         const cipherId = simple_crypto.cipher(response.insertedId.toString());

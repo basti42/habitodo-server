@@ -4,6 +4,7 @@ const mongo = require("mongodb");
 
 const generateAccessToken = require("../helpers/token");
 const dbConnection = require("../database/connection");
+const simple_crypto = require("../helpers/simple_crypto");
 
 const authenticateToken = require("../middlewares/auth");
 
@@ -21,13 +22,15 @@ router.post("/register", async (req, res) => {
         
         // check that user with this email does not exist
         let existing_user = await db.collection("app-users").findOne({email});
+        let now = new Date();
         if (!existing_user){
             db.collection("app-users")
             .insertOne({username, 
+                    user_id: "",
                     email, 
                     password_hash: hash, 
                     email_validated: false,
-                    registered_at: new Date(), 
+                    registered_at: now, 
                     icon_path: "",
                     position: "",
                     bio: "",
@@ -38,19 +41,22 @@ router.post("/register", async (req, res) => {
                 })
                 .then( insert_result => {
                     const token = generateAccessToken(insert_result.insertedId.toString());
-                    db.collection("app-users").findOneAndUpdate({email}, {$set: {"tokens": [token]}});
+                    const user_id = simple_crypto.cipher(insert_result.insertedId.toString());
+                    db.collection("app-users").findOneAndUpdate({email}, {$set: {"tokens": [token], 
+                                                                                                       "user_id": user_id}});
                     res.send(JSON.stringify(
                         {
-                            username, 
+                            username,
+                            user_id, 
                             email, 
                             token, 
                             icon_path: "",
-                            registered_at: new Date(user.registered_at).toLocaleString(),
-                            bio: user.bio || "",
-                            position: user.position || "",
-                            boards: user.boards || [],
-                            personal_notes: user.personal_notes || [],
-                            team_ids: user.team_ids || []
+                            registered_at: now,
+                            bio: "",
+                            position: "",
+                            boards: [],
+                            personal_notes: [],
+                            team_ids: []
                         }));
                 })
                 .catch( error => {
@@ -81,15 +87,16 @@ router.post("/login", async (req, res) => {
             res.send(JSON.stringify(
                 {
                     username: existing_user.username, 
+                    user_id: existing_user.user_id,
                     email: existing_user.email, 
                     token, 
                     icon_path: existing_user.icon_path,
-                    registered_at: new Date(user.registered_at).toLocaleString(),
-                    bio: user.bio || "",
-                    position: user.position || "",
-                    boards: user.boards || [],
-                    personal_notes: user.personal_notes || [],
-                    team_ids: user.team_ids || []
+                    registered_at: new Date(existing_user.registered_at).toLocaleString(),
+                    bio: existing_user.bio || "",
+                    position: existing_user.position || "",
+                    boards: existing_user.boards || [],
+                    personal_notes: existing_user.personal_notes || [],
+                    team_ids: existing_user.team_ids || []
                 }));
         } else {
             res.status(401).send({message: "Incorrect password."});
@@ -124,6 +131,7 @@ router.get("/me", authenticateToken, async (req, res) => {
         if (user){
             res.send({
                 username: user.username,
+                user_id: user.user_id,
                 email: user.email,
                 email_validated: user.email_validated,
                 token,
@@ -151,6 +159,7 @@ router.get("/profile", authenticateToken, async (req, res) => {
         if (user) {
             res.send({
                 username: user.username,
+                user_id: user.user_id,
                 email: user.email,
                 email_validated: user.email_validated,
                 icon_path: user.icon_path,
@@ -196,7 +205,7 @@ router.get("/all-users", (req, res) => {
             if (err) {
                 res.status(400).send(JSON.stringify({message: "Error fetching from users collection"}));
             } else {
-                res.json(result);
+                res.json(JSON.stringify(result));
             } 
         })
 });
