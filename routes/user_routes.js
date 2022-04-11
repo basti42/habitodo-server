@@ -31,7 +31,7 @@ router.post("/register", async (req, res) => {
                     password_hash: hash, 
                     email_validated: false,
                     registered_at: now, 
-                    icon_path: "",
+                    icon_path: "/assets/user_avatars/blue_dog.png",
                     position: "",
                     bio: "",
                     tokens: [],
