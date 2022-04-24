@@ -1,0 +1,83 @@
+
+User
+    ----authentication
+    username            not unquie, only for display purposes used
+    email               has to be unique, its the ID for the user
+    password            hashed password
+
+    ----organizational
+    tokens              list of jwt access tokens that are currently active
+    email_validated     whether the email address has been validate = default False
+
+    ----private-profile (does also include all infos from public profile)
+    username            not unquie, only for display purposes used
+    user_id             simple crypto hashed mongo object id for _id for user to be used on the frontend
+    registered_at       date of registering the user
+    last_logged_in      date of last login
+    boards              list of boards this user was part of
+    personal_notes      list of personal notes the user has written down
+
+    ----public-profile
+    username            not unquie, only for display purposes used
+    user_id             simple crypto hashed mongo object id for _id for user to be used on the frontend
+    icon_path           path to the user icon, default should be grey anonymous avatar (circular shape)
+    position            role/position in the team/organization
+    bio                 biografie, a short description about yourself
+    team_ids            list of team ids this user belongs to
+
+
+Team
+
+    ----organizational
+    team_name           not unique name of the team, as given by the creator
+    team_id             hashed mongo_db_id for this team --> will be used to identify components for this team
+    team_logo           path to team logo, can be uploadable, think of nice placeholder image (rectangular shape)
+    created_at          date of when this team was created
+    members_emails      list of emails of the members of this team --> emails send to join the team
+    boards              list of all board ids belonging to this team
+    team_admins         list of members with admin priveliged for the team, the various metrics can only be set by team admins
+    metrics             list of metric ids
+
+    ----metrics
+    // maybe different metrics can be created to be tracked over time
+    //  - these metrics should be checked and updated every retro
+    //  - what about when a metric gets skipped -> just keep the current value?
+    //  - metrics could be:
+    //      - overall happiness
+    //      - 
+
+
+
+Template
+
+    name                name for this metric, must be unique (for metrics: metric_<title>, e.g. "metric_habitodoscore")
+    values              list of all possibles values for each question
+    questions           list of all questions-objects for this metric. e.g. { question, label, color }
+
+
+
+Metrics
+    user_id             reference id to map to the user
+    board_id            reference id to map to the board this metric belongs to
+    template_id         reference id to map the template used for this metric
+    timestamp           datetime as iso string
+    values              list of objects with the values for the metric
+
+
+
+Board
+
+    ----organizational
+    title               title of the board, should include a topic
+    description         short description of the topic for this board
+    board_id            hashed mongo_db_id for this board --> will be used to identify components for this board
+    created_at          date of creation of this board
+    closed_at           date when this board was closed
+    participants        list of members to participate in this board
+    moderators          list of members who are moderation this board/retro
+    stages              list of objects that define the stages of the board
+
+
+
+Templates
+
