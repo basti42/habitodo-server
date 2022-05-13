@@ -42,8 +42,7 @@ router.post("/register", async (req, res) => {
                 .then( insert_result => {
                     const token = generateAccessToken(insert_result.insertedId.toString());
                     const user_id = simple_crypto.cipher(insert_result.insertedId.toString());
-                    db.collection("app-users").findOneAndUpdate({email}, {$set: {"tokens": [token], 
-                                                                                                       "user_id": user_id}});
+                    db.collection("app-users").findOneAndUpdate({email}, {$set: {"tokens": [token], "user_id": user_id}});
                     res.send(JSON.stringify(
                         {
                             username,

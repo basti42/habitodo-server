@@ -69,12 +69,25 @@ router.get("/get/:team_id", authenticateToken, async (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         const team_id = req.params.team_id;
         const db = dbConnection.getDb();
-
         const user_id = req.decoded_token.user_id; // string representation of the mongo object id for that user
-        const team = await db.collection("app-teams").findOne({team_id}); // find the team by the cipher text hashed id
+        let actual_team_id = "";
 
+        // if team id is empty, just retrive the first team for this user
+        if (team_id === "0"){
+            const user = await db.collection("app-users").findOne({"_id": new mongo.ObjectId(user_id)});
+            if (user){
+                actual_team_id = user.team_ids[-1];
+            }
+        } else {
+            actual_team_id = team_id;
+        }
+        
+        const team = await db.collection("app-teams").findOne({actual_team_id}); // find the team by the cipher text hashed id
+        if (team === undefined){
+            res.status(404).send(JSON.stringify({}));
+        }
         delete team._id; // drop the internal mongoDB object id from the returned object, only use the cipher text id
-
+        team.created_at = new Date(team.created_at).toLocaleString();
         res.send(JSON.stringify(team));
 
     } catch (error){
