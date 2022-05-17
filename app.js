@@ -38,7 +38,7 @@ db.connectToServer((err) => {
 
 // apply the routes
 app.use("/status", statusRoutes);
-app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/boards", boardRoutes);
 app.use("/api/v1/team", teamRoutes);
 app.use("/api/v1/files", fileHandleRoutes);
