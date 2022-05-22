@@ -1,0 +1,750 @@
+swagger: "2.0"
+info:
+  description: "WORK-IN-PROGRESS: habitodo api specs."
+  version: "1.0.0"
+  title: "Habitodo"
+  termsOfService: "http://habitodo.de/"
+  contact:
+    email: "habitodo@gmx.de"
+  license:
+    name: "TODO"
+    url: "http://TODO.de"
+host: "localhost"
+basePath: "/api/v1"
+tags:
+- name: "users"
+  description: "Operations about user"
+  externalDocs:
+    description: "Find out more"
+    url: "http://habitodo.de"
+- name: "teams"
+  description: "Operations about teams"
+  externalDocs:
+    description: "Find out more"
+    url: "http://habitodo.de"
+- name: "boards"
+  description: "Operations about boards"
+  externalDocs:
+    description: "Find out more"
+    url: "http://habitodo.de"
+- name: "metrics"
+  description: "Operations about metrics"
+  externalDocs:
+    description: "Find out more"
+    url: "http://habitodo.de"
+schemes:
+- "https"
+- "http"
+
+paths:
+
+  /users:
+    put:
+      tags:
+      - "users"
+      summary: "Create user / Register"
+      description: "This can be done by anyone."
+      operationId: "registerUser"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Created user object"
+        required: true
+        schema:
+          $ref: "#/definitions/RegisterCredentials"
+      responses:
+        "200":
+          description: "successful registration"
+          schema:
+            $ref: "#/definitions/User"
+        "401":
+          description: "Unable to create/register User"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+  
+    post:
+      tags:
+      - "users"
+      summary: "Login user"
+      description: "This can be done by anyone with the correct credentials"
+      operationId: "loginUser"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "login user with credentials"
+        required: true
+        schema:
+          $ref: "#/definitions/Credentials"
+      responses:
+        "200":
+          description: "succesful login"
+          schema:
+            $ref: "#/definitions/User"
+        "403":
+          description: "incorrect credentials"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "404":
+          description: "user not found"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+  
+  /users/logout:
+    post:
+      security:
+      - BearerAuth: []
+      tags:
+      - "users"
+      summary: "Logs out current logged in user session"
+      description: "This can only be done by the logged in user"
+      operationId: "logoutUser"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        "200":
+          description: "succesful logout"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "404":
+          description: "unsuccesful logout"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+      
+  /users/me:
+    get:
+      security:
+      - BearerAuth: []
+      tags:
+      - "users"
+      summary: "Get user information for user with userid from token"
+      description: "This can only be done by the logged in user"
+      operationId: "getUserByUserId"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/User"
+        "403":
+          description: "Invalid Token. Maybe access token expired."
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "404":
+          description: "User not found"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+  
+    post:
+      security:
+      - BearerAuth: []
+      tags:
+      - "users"
+      summary: "Updated user by userid from token"
+      description: "This can only be done by the logged in user."
+      operationId: "updateUser"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Updated user object"
+        required: true
+        schema:
+          $ref: "#/definitions/User"
+      responses:
+        "400":
+          description: "Invalid user supplied"
+        "404":
+          description: "User not found"
+          
+    delete:
+      security:
+      - BearerAuth: []
+      tags:
+      - "users"
+      summary: "Delete user by userid from token"
+      description: "This can only be done by the logged in user."
+      operationId: "deleteUser"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "Succesful deletion"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "403":
+          description: "Invalid Token. Maybe access token expired."
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "404":
+          description: "User not found"
+          schema:
+            $ref: "#/definitions/ApiResponse" 
+
+
+  /teams:
+    put:
+      security:
+      - BearerAuth: []
+      tags:
+      - "teams"
+      summary: "Create a team"
+      description: "This can only be done by the logged in user."
+      operationId: "createTeam"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "body"
+        in: "body"
+        description: "Update Team object"
+        required: true
+        schema:
+          $ref: "#/definitions/CreateTeam"
+      responses:
+        "200":
+          description: "succesfully created new team"
+          schema:
+            $ref: "#/definitions/Team"
+        "403":
+          description: "Invalid Token. Maybe access token is expired."
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "401":
+          description: "Unable to create new team"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+    
+    get:
+      security:
+      - BearerAuth: []
+      tags:
+      - "teams"
+      summary: "get all teams where logged in user is a member of"
+      description: "This can only be done by the logged in user."
+      operationId: "getTeams"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successfully retrieved teams for user. Can be empty array."
+          schema:
+            $ref: "#/definitions/Teams"
+        "403":
+          description: "Invalid Token. Maybe access token is expired"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "404":
+          description: "Error retrieving teams for logged in user"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+  
+  /teams/{teamid}:
+    get:
+      security:
+      - BearerAuth: []
+      tags:
+      - "teams"
+      summary: "get team by id for logged in user, where user is member of"
+      description: "This can only be done by the logged in user. User must be member of this team."
+      operationId: "getTeamByTeamId"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "teamid"
+        in: "path"
+        description: "id of the team"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Succesfully retrieved team by id"
+          schema:
+            $ref: "#/definitions/Team"
+        "403":
+          description: "Invalid Token. Maybe access token is expired"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "404":
+          description: "Error retriving team by id"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+    
+    post:
+      security:
+      - BearerAuth: []
+      tags:
+      - "teams"
+      summary: "update team by id for logged in user, which has to be an admin for this team"
+      description: "This can only be done by the logged in user who is an admin for this team"
+      operationId: "updateTeamById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "teamid"
+        in: "path"
+        description: "id of the team"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "updated team object"
+        required: true
+        schema:
+          $ref: "#/definitions/UpdateTeam"
+      responses:
+        "200":
+          description: "Succesfully updated team"
+          schema:
+            $ref: "#/definitions/Team"
+        "403":
+          description: "Invalid Token. Maybe access token is expired."
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "401":
+          description: "Error updating team"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+      
+    delete:
+      security:
+      - BearerAuth: []
+      tags:
+      - "teams"
+      summary: "delete team by id for logged in user, which has to be an admin for this team"
+      description: "This can only be done by the logged in user who is an admin for this team"
+      operationId: "deleteTeamById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "teamid"
+        in: "path"
+        description: "id of the team"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Succesfully deleted team"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "403":
+          description: "Invalid Token. Maybe access token is expired."
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "404":
+          description: "Error deleting team"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+
+
+  /boards:
+    put:
+      security:
+      - BearerAuth: []
+      tags:
+      - "boards"
+      summary: "create a new board"
+      description: "This can only be done by the logged in user."
+      operationId: "createBoard"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "new board object"
+        required: true
+        schema:
+          $ref: "#/definitions/CreateBoard"
+      responses:
+        "200":
+          description: "Succesfully created board"
+          schema:
+            $ref: "#/definitions/Board"
+        "403":
+          description: "Invalid Token. Maybe access token is expired."
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "401":
+          description: "Error creating board"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+            
+    get:
+      security:
+      - BearerAuth: []
+      tags:
+      - "boards"
+      summary: "get all boards, that this user participated in"
+      description: "This can only be done by the logged in user."
+      operationId: "getAllBoards"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "Succesfully retrieved all boards"
+          schema:
+            $ref: "#/definitions/Boards"
+        "403":
+          description: "Invalid Token. Maybe access token is expired."
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "401":
+          description: "Error creating board"
+          schema:
+            $ref: "#/definitions/ApiResponse"      
+
+  /boards/{boardid}:
+    get:
+      security:
+      - BearerAuth: []
+      tags:
+      - "boards"
+      summary: "get board by id for logged in user, where user is participant in"
+      description: "This can only be done by the logged in user. User must be participant in this board."
+      operationId: "getBoardByBoardId"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "boardid"
+        in: "path"
+        description: "id of the board"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Succesfully retrieved board by id"
+          schema:
+            $ref: "#/definitions/Board"
+        "403":
+          description: "Invalid Token. Maybe access token is expired"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "404":
+          description: "Error retriving board by id"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+    
+    post:
+      security:
+      - BearerAuth: []
+      tags:
+      - "boards"
+      summary: "update board by id for logged in user, which has to be a moderator for this board"
+      description: "This can only be done by the logged in user who is a moderator for this board"
+      operationId: "updateBoardById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "boardid"
+        in: "path"
+        description: "id of the board"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "updated board object"
+        required: true
+        schema:
+          $ref: "#/definitions/Board"
+      responses:
+        "200":
+          description: "Succesfully updated board"
+          schema:
+            $ref: "#/definitions/Board"
+        "403":
+          description: "Invalid Token. Maybe access token is expired."
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "401":
+          description: "Error updating board"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+      
+    delete:
+      security:
+      - BearerAuth: []
+      tags:
+      - "boards"
+      summary: "delete board by id for logged in user, which has to be a moderator for this board"
+      description: "This can only be done by the logged in user who is a moderator for this board"
+      operationId: "deleteBoardById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "boardid"
+        in: "path"
+        description: "id of the board"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Succesfully deleted board"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "403":
+          description: "Invalid Token. Maybe access token is expired."
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        "404":
+          description: "Error deleting board"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+      
+  /boards/teams/{teamid}:
+      get:
+        security:
+        - BearerAuth: []
+        tags:
+        - "boards"
+        summary: "get all boards, that are linked to this team"
+        description: "This can only be done by the logged in user."
+        operationId: "getAllBoardsForTeam"
+        produces:
+        - "application/json"
+        parameters:
+        - name: "teamid"
+          in: "path"
+          description: "id of the team"
+          required: true
+          type: "string"
+        responses:
+          "200":
+            description: "Succesfully retrieved all boards"
+            schema:
+              $ref: "#/definitions/Boards"
+          "403":
+            description: "Invalid Token. Maybe access token is expired."
+            schema:
+              $ref: "#/definitions/ApiResponse"
+          "401":
+            description: "Error retrieving board"
+            schema:
+              $ref: "#/definitions/ApiResponse"
+
+securityDefinitions:
+  BearerAuth:
+    type: "apiKey"
+    name: "api_key"
+    in: "header"
+definitions:
+  
+  RegisterCredentials:
+    type: "object"
+    properties:
+      username:
+        type: "string"
+        description: "Does not have to be unique"
+      email:
+        type: "string"
+        description: "Must be unique to the user"
+      password:
+        type: "string"
+        
+  Credentials:
+    type: "object"
+    properties:
+      email:
+        type: "string"
+        description: "Email with which the user registered"
+      password:
+        type: "string"
+      
+  User:
+    type: "object"
+    properties:
+      username:
+        type: "string"
+      user_id:
+        type: "string"
+      email:
+        type: "string"
+      token:
+        type: "string"
+        description: "jwt authentication token"
+      icon_path:
+        type: "string"
+      registered_at:
+        type: "string"
+      last_login:
+        type: "string"
+      bio:
+        type: "string"
+      position:
+        type: "string"
+      boards:
+        type: "array"
+        items:
+          type: "string"
+          description: "board ids for this user"
+      personal_notes:
+        type: "array"
+        items:
+          type: "string"
+          description: "TODO, this should be its own micro service"
+      teams:
+        type: "array"
+        items:
+          type: "string"
+          description: "team ids for this user"
+    xml:
+      name: "User"
+      
+  CreateTeam:
+    type: "object"
+    properties:
+      team_name: 
+        type: "string"
+      team_logo:
+        type: "string"
+      emails:
+        type: "array"
+        items:
+          type: "string"
+          
+  Team:
+    type: "object"
+    properties:
+      team_name:
+        type: "string"
+      team_id:
+        type: "string"
+        description: "simple crypto version of board id"
+      team_logo:
+        type: "string"
+        description: "path to the team logo"
+      created_at:
+        type: "string"
+        description: "Local ISO string of datetime of creation (server side)"
+      emails:
+        type: "array"
+        items:
+          type: "string"
+        description: "List of members emails for inviations"
+      boards:
+        type: "array"
+        description: "List of board ids created for this team"
+        items:
+          type: "string"
+      members:
+        type: "array"
+        items:
+          type: "string"
+        description: "List of user ids that belong to this team"
+      admins:
+        type: "array"
+        items:
+          type: "string"
+        description: "List of user ids that are admins for this team (subset of members)"
+      
+  Teams:
+    type: "array"
+    items:
+      $ref: "#/definitions/Team"
+  
+  
+  UpdateTeam:
+    type: "object"
+    properties:
+      team_name:
+        type: "string"
+      team_logo:
+        type: "string"
+      emails:
+        type: "array"
+        items:
+          type: "string"
+      boards:
+        type: "array"
+        items:
+          type: "string"
+      members:
+        type: "array"
+        items:
+          type: "string"
+      admins:
+        type: "array"
+        items:
+          type: "string"
+  
+  CreateBoard:
+    type: "object"
+    properties:
+      topic:
+        type: "string"
+      description:
+        type: "string"
+      isPublic:
+        type: "boolean"
+        description: "flag indicating if this board is public or not."
+      participants:
+        type: "array"
+        items:
+          type: "string"
+        description: "List of user ids that are participants of this board"
+      moderators:
+        type: "array"
+        items:
+          type: "string"
+        description: "List of user ids that are moderators for this board (subset of participants)."
+      emails: 
+        type: "array"
+        items:
+          type: "string"
+        description: "Email adresses of participants of this board, for invitation"
+      team:
+        type: "string"
+        description: "team id this board is connected to, if not public"
+  
+  
+  Board:
+    type: "object"
+    properties:
+      topic:
+        type: "string"
+      description:
+        type: "string"
+      isPublic:
+        type: "boolean"
+      participants:
+        type: "array"
+        items: 
+          type: "string"
+      moderators: 
+        type: "array"
+        items: 
+          type: "string"
+      emails: 
+        type: "array"
+        items:
+          type: "string"
+        description: "Email adresses of participants of this board, for invitation"
+      team:
+        type: "string"
+        description: "tean is this board is connected to, if not public"
+      # TODO need more for a board, like sections, etc.
+
+
+  Boards:
+    type: "array"
+    items:
+      $ref: "#/definitions/Board"
+
+  
+  ApiResponse:
+    type: "object"
+    properties:
+      statusCode:
+        type: "integer"
+        format: "int32"
+      message:
+        type: "string"
+        
+        
+externalDocs:
+  description: "Find out more about Swagger"
+  url: "http://swagger.io"

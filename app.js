@@ -40,7 +40,7 @@ db.connectToServer((err) => {
 app.use("/status", statusRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/boards", boardRoutes);
-app.use("/api/v1/team", teamRoutes);
+app.use("/api/v1/teams", teamRoutes);
 app.use("/api/v1/files", fileHandleRoutes);
 app.use("/api/v1/templates", templateRoutes);
 
