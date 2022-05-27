@@ -11,7 +11,7 @@ const userRoutes = require("./routes/user_routes");
 const boardRoutes = require("./routes/board_routes");
 const teamRoutes = require("./routes/team_routes");
 const fileHandleRoutes = require("./routes/file_handling_routes");
-const templateRoutes = require("./routes/template_routes");
+const metricRoutes = require("./routes/metrics");
 
 const app = express();
 
@@ -42,7 +42,7 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/boards", boardRoutes);
 app.use("/api/v1/teams", teamRoutes);
 app.use("/api/v1/files", fileHandleRoutes);
-app.use("/api/v1/templates", templateRoutes);
+app.use("/api/v1/metrics", metricRoutes);
 
 
 // make the app listen on a specified port

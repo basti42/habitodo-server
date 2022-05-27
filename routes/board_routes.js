@@ -28,13 +28,20 @@ const router = express.Router();
 // });
 
 
-router.post("/add", authenticateToken, (req, res) => {
-    const {topic, description, participants, team_id} = req.body;
+router.put("/", authenticateToken, (req, res) => {
+    const {topic, description, isPublic, participants, moderators, emails, team} = req.body;
     res.setHeader('Content-Type', 'application/json');
 
     const db = dbConnection.getDb();
-    db.collection("app-boards").insertOne({topic, description, board_id: "", moderators: [ req.decoded_token.user_id ], participants, team_id})
-        .then( insert_result => {
+    db.collection("app-boards").insertOne(
+        {
+            topic, 
+            description, 
+            board_id: "", 
+            moderators: [ req.decoded_token.user_id ], 
+            participants, 
+            team_id
+        }).then( insert_result => {
             const board_id = insert_result.insertedId.toString("hex");
             const encrypted_board_id = simpleCrypto.cipher(board_id);
             // TODO is it necessary to add board_id to users boards?
