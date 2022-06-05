@@ -11,8 +11,10 @@ const authenticateToken = require("../middlewares/auth");
 router.put("/", authenticateToken, async (req, res) => {
     try {
         res.setHeader('Content-Type', 'application/json');
-        const { team_name, team_logo, emails } = req.body;
+        const { team_name, team_logo, emails, settings } = req.body;
         const db = dbConnection.getDb();
+
+        const { feedback_interval, effective_day,  reminder, feedback_time_range } = settings;
 
         // insert initial team values
         let response = await db.collection("app-teams").insertOne({
@@ -23,7 +25,11 @@ router.put("/", authenticateToken, async (req, res) => {
             emails: emails,
             boards: [],
             members: [ req.decoded_token.user_id ],
-            admins: [ req.decoded_token.user_id ]
+            admins: [ req.decoded_token.user_id ],
+            feedback_interval,
+            effective_day,
+            reminder, 
+            feedback_time_range
         });
         const cipherId = simple_crypto.cipher(response.insertedId.toString());
         
@@ -61,25 +67,25 @@ router.get("/", authenticateToken, async (req, res) => {
 });
 
 
-router.delete("/delete/:team_id", authenticateToken, async (req, res) => {
-    try{
-        res.setHeader('Content-Type', 'application/json');
-        const team_id = req.params.team_id;
-        const db = dbConnection.getDb();
+// router.delete("/delete/:team_id", authenticateToken, async (req, res) => {
+//     try{
+//         res.setHeader('Content-Type', 'application/json');
+//         const team_id = req.params.team_id;
+//         const db = dbConnection.getDb();
 
-        // delte the actual team
-        let deleteResponse = await db.collection("app-teams").deleteOne({team_id});
-        // console.debug("Team deletion: ", deleteResponse);
+//         // delte the actual team
+//         let deleteResponse = await db.collection("app-teams").deleteOne({team_id});
+//         // console.debug("Team deletion: ", deleteResponse);
 
-        // remove the team_id from the users
-        let usersUpdateResponse = await db.collection("app-users").updateMany({team_ids : {$exists:true}, $where:'this.team_ids.length>0'}, {$pull : {team_ids: team_id}});
-        // console.debug("Users Update: ", usersUpdateResponse);
+//         // remove the team_id from the users
+//         let usersUpdateResponse = await db.collection("app-users").updateMany({team_ids : {$exists:true}, $where:'this.team_ids.length>0'}, {$pull : {team_ids: team_id}});
+//         // console.debug("Users Update: ", usersUpdateResponse);
 
-        res.send(JSON.stringify({message: "Removed Team"}));
-    } catch (error) {
+//         res.send(JSON.stringify({message: "Removed Team"}));
+//     } catch (error) {
 
-    }
-})
+//     }
+// })
 
 // get team by team_id, only if logged in user is part of this team
 router.get("/:team_id", authenticateToken, async (req, res) => {
@@ -109,13 +115,15 @@ router.post("/:team_id", authenticateToken, async (req, res) => {
     try{
         res.setHeader('Content-Type', 'application/json');
         const team_id = req.params.team_id;
-        const { team_name, team_logo, emails, boards, members, admins } = req.body;
+        const { team_name, team_logo, emails, boards, members, admins, settings } = req.body;
+        const { feedback_interval, effective_day, reminder, feedback_time_range } = settings;
+
         const db = dbConnection.getDb();
         const user_id = req.decoded_token.user_id; // string representation of the mongo object id for that user
         
         const updated_team = await db.collection("app-teams").findOneAndUpdate(
             { team_id: team_id, admins: {$all: [user_id]} },
-            { $set: { team_name, team_logo, members_emails: emails, boards, members, admins } },
+            { $set: { team_name, team_logo, members_emails: emails, boards, members, admins, feedback_interval, effective_day, reminder, feedback_time_range } },
             { returnDocument: "after" });
         
         if (updated_team.ok !== 1){
@@ -129,5 +137,8 @@ router.post("/:team_id", authenticateToken, async (req, res) => {
         res.status(404).send(JSON.stringify({message: `Error: ${error}`}));
     }
 });
+
+// delete team by team_id
+// TODO router.delete("/:team_id", authenticateToken, async (req, res) => { ... });
 
 module.exports = router;

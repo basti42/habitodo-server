@@ -9,6 +9,7 @@ const authenticateToken = require("../middlewares/auth");
 
 const router = express.Router();
 
+// register new user
 router.put("/", async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -30,11 +31,10 @@ router.put("/", async (req, res) => {
                     password_hash: hash, 
                     email_validated: false,
                     registered_at: now, 
+                    last_login: null,
                     icon_path: icon_path,
                     position: "",
                     bio: "",
-                    team_ids: [],
-                    boards: [],
                     personal_notes: []
                 })
                 .then( insert_result => {
@@ -49,13 +49,11 @@ router.put("/", async (req, res) => {
                             email_validated: false,
                             token, 
                             icon_path: icon_path,
-                            registered_at: now,
-                            last_login: null,
+                            registered_at: now.toLocaleString(),
+                            last_login: "",
                             bio: "",
                             position: "",
-                            boards: [],
-                            personal_notes: [],
-                            team_ids: []
+                            personal_notes: []
                         }));
                 })
                 .catch( error => {
@@ -72,6 +70,7 @@ router.put("/", async (req, res) => {
     }
 });
 
+// login user
 router.post("/", async (req, res) => {
     try {
         const { email, password } = req.body;   
@@ -94,9 +93,7 @@ router.post("/", async (req, res) => {
                     last_login: new Date(existing_user.last_login).toLocaleString() || null, 
                     bio: existing_user.bio || "",
                     position: existing_user.position || "",
-                    boards: existing_user.boards || [],
-                    personal_notes: existing_user.personal_notes || [],
-                    team_ids: existing_user.team_ids || []
+                    personal_notes: existing_user.personal_notes || []
                 }));
         } else {
             res.status(401).send({message: "Incorrect password."});
@@ -106,6 +103,7 @@ router.post("/", async (req, res) => {
     }
 });
 
+// logout user
 router.post("/logout", authenticateToken, async (req, res) => {
     try{
         const authHeader = req.headers['authorization'];
@@ -121,6 +119,7 @@ router.post("/logout", authenticateToken, async (req, res) => {
     }
 });
 
+// retrieve user by 
 router.get("/me", authenticateToken, async (req, res) => {
     try{
         const authHeader = req.headers['authorization'];
@@ -141,9 +140,7 @@ router.get("/me", authenticateToken, async (req, res) => {
                 last_login: new Date(user.last_login).toLocaleString(),
                 bio: user.bio || "",
                 position: user.position || "",
-                boards: user.boards || [],
-                personal_notes: user.personal_notes || [],
-                team_ids: user.team_ids || []
+                personal_notes: user.personal_notes || []
             });
         } else {
             res.status(401).send(JSON.stringify({message: "Something went horribly wrong"}));
@@ -153,33 +150,7 @@ router.get("/me", authenticateToken, async (req, res) => {
     }
 });
 
-// router.get("/profile", authenticateToken, async (req, res) => {
-//     try{
-//         res.setHeader('Content-Type', 'application/json');
-//         const db = dbConnection.getDb();
-//         let user = await db.collection("app-users").findOne({_id: new mongo.ObjectId(req.decoded_token.user_id)});
-//         if (user) {
-//             res.send({
-//                 username: user.username,
-//                 user_id: user.user_id,
-//                 email: user.email,
-//                 email_validated: user.email_validated,
-//                 icon_path: user.icon_path,
-//                 registered_at: new Date(user.registered_at).toLocaleString(),
-//                 bio: user.bio || "",
-//                 position: user.position || "",
-//                 boards: user.boards || [],
-//                 personal_notes: user.personal_notes || [],
-//                 team_ids: user.team_ids || []
-//             });
-//         } else {
-//             res.status(401).send(JSON.stringify({message: "No user with this id is known."}));
-//         }
-//     } catch (error) {
-//         res.status(401).send(JSON.stringify({message: `Error occured: ${error}`}));
-//     }
-// })
-
+// update user
 router.post("/me", authenticateToken, async (req, res) => {
     try {
         res.setHeader('Content-Type', 'application/json');
@@ -196,6 +167,9 @@ router.post("/me", authenticateToken, async (req, res) => {
         res.status(401).send(JSON.stringify({stautsCode: 401, message: `${err}`}));
     }
 })
+
+// delete user
+// TODO router.delete("/me", authenticateToken, async (req, res) => { ... })
 
 // TEST ROUTE FOR DB ACCESS
 router.get("/all-users", (req, res) => {
