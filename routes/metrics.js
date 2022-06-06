@@ -89,28 +89,25 @@ router.put("/templates/", authenticateToken, async (req, res) => {
 });
 
 
-// retrieves all scores for the user AND the given team
+// retrieves all scores for the user
 router.get("/users/", authenticateToken, async(req, res) => {
     try {
         res.setHeader('Content-Type', 'application/json');
-        const {user, team} = req.body;
-
+        
         const db = dbConnection.getDb();
         db.collection("app-scores")
-            .find({ $and: [ {user: user}, {team: team} ] })
-            // .limit(10)
+            .find({ user: req.decoded_token.user_id})
             .toArray((err, result) => {
                 if (err) {
-                    res.status(400).send(JSON.stringify({message: "Error retrieving user scores"}));
+                    return res.status(400).send(JSON.stringify({message: "Error retrieving user scores"}));
                 } else {
                     // sort in ascending order by date
                     result.sort((left, right) => { (left.date > right.date) ? 1 : ((left.date < right.date) ? -1 : 0) });
-                    res.send(JSON.stringify(result));
+                    return res.send(JSON.stringify(result));
                 }
-            })
-
+            });
     } catch (error){
-        res.status(404).send(JSON.stringify({statusCode: 404, message: error}));
+        return res.status(404).send(JSON.stringify({statusCode: 404, message: error}));
     }
 });
 
@@ -122,16 +119,16 @@ router.put("/users/", authenticateToken, async (req, res) => {
         const db = dbConnection.getDb();
 
         // check if at least user or team are set.
-        if (template === null, user === null && team === null){
-            res.status(404).send(JSON.stringify({statusCode: 404, message: "No owner for this score provided or no template id. unable to persist."}));
+        if (template === null || user === null || team === null){
+            return res.status(404).send(JSON.stringify({statusCode: 404, message: "No owner for this score provided or no template id. unable to persist."}));
         }
 
         // check that metrics is an object and contains the correct properties
         if (typeof metrics !== "object" && !metrics.hasOwnProperty('metrics') && !metrics.length <= 0){
-            res.status(404).send(JSON.stringify({statusCode: 404, message: `Expected type of 'metrics' to be 'object', received type '${typeof metrics}' instead.` }));
+            return res.status(404).send(JSON.stringify({statusCode: 404, message: `Expected type of 'metrics' to be 'object', received type '${typeof metrics}' instead.` }));
         }
         if (!metrics[0].hasOwnProperty('question') || !metrics[0].hasOwnProperty('value') || !metrics[0].hasOwnProperty('label')){
-            res.status(404).send(JSON.stringify({statusCode: 404, message: "Expected 'metrics' to have properties: 'question', 'value', 'label'"}));
+            return res.status(404).send(JSON.stringify({statusCode: 404, message: "Expected 'metrics' to have properties: 'question', 'value', 'label'"}));
         }
 
         // calc mean.
@@ -148,10 +145,10 @@ router.put("/users/", authenticateToken, async (req, res) => {
             mean
         });
 
-        res.send(JSON.stringify({statusCode: 200, message: "Added new user score!"}));
+        return res.send(JSON.stringify({statusCode: 200, message: "Added new user score!"}));
 
     } catch (error){
-        res.status(401).send(JSON.stringify({statusCode: 401, message: error}));
+        return res.status(401).send(JSON.stringify({statusCode: 401, message: error}));
     }
 });
 
