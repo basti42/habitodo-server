@@ -41,7 +41,7 @@ const templateRetrival = async (req, res) => {
 router.get("/templates/:team_id", authenticateToken, templateRetrival);
 router.get("/templates/", authenticateToken, async (req, res) => {
     req.params.team_id = " ";
-    templateRetrival(req, res);
+    await templateRetrival(req, res);
 });
 
 
@@ -88,6 +88,10 @@ router.put("/templates/", authenticateToken, async (req, res) => {
     }
 });
 
+
+/*
+    SCORES
+*/
 
 // retrieves all scores for the user
 router.get("/users/", authenticateToken, async(req, res) => {

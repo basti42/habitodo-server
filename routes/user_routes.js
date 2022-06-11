@@ -31,7 +31,7 @@ router.put("/", async (req, res) => {
                     password_hash: hash, 
                     email_validated: false,
                     registered_at: now, 
-                    last_login: null,
+                    last_login: now,
                     icon_path: icon_path,
                     position: "",
                     bio: "",
@@ -50,7 +50,7 @@ router.put("/", async (req, res) => {
                             token, 
                             icon_path: icon_path,
                             registered_at: now.toLocaleString(),
-                            last_login: "",
+                            last_login: now.toLocaleString(),
                             bio: "",
                             position: "",
                             personal_notes: []
@@ -167,6 +167,36 @@ router.post("/me", authenticateToken, async (req, res) => {
         res.status(401).send(JSON.stringify({stautsCode: 401, message: `${err}`}));
     }
 })
+
+// retrieve public profiles for each a list of user_ids
+router.post("/public", authenticateToken, async (req, res) => {
+    try {
+        res.setHeader('Content-Type', 'application/json');
+        const { user_ids } = req.body;
+        const obj_ids = user_ids.map( (uid) => { return mongo.ObjectId(uid) } );
+
+        const db = dbConnection.getDb();
+        let users = await db.collection("app-users").find({"_id": { "$in": obj_ids } }).toArray();
+
+        if (users.length <= 0){
+            return res.status(404).send(JSON.stringify({statusCode: 404, message: "Unable to retrieve public profiles for provided user ids"}));
+        }
+
+        users.forEach( user => {
+            delete user._id;
+            delete user.password_hash;
+            delete user.email_validated;
+            delete user.registered_at;
+            delete user.icon_path;
+            delete user.personal_notes;
+            delete user.last_login;
+        })
+        return res.send(JSON.stringify(users));
+
+    } catch (error) {
+        return res.status(401).send(JSON.stringify({statusCode: 401, message: error}))
+    }
+});
 
 // delete user
 // TODO router.delete("/me", authenticateToken, async (req, res) => { ... })
